@@ -3,6 +3,7 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  onMount,
   Setter,
 } from "solid-js";
 import { SubStatNone, SubStatType } from "../../types/artifact/substat";
@@ -10,7 +11,7 @@ import { MainStatType } from "../../types/artifact/mainstat";
 
 function useUniqueSubstatList(
   substats: Accessor<SubStatType[]>,
-  dependencyList: () => Accessor<MainStatType | SubStatType>[],
+  dependencyList: () => Accessor<MainStatType | SubStatType>[]
 ) {
   return createMemo(() => {
     const filtered: SubStatType[] = [];
@@ -34,11 +35,11 @@ export type SubStatAccessor = {
 function createSubstatSignal(
   substats: Accessor<SubStatType[]>,
   dependencyList: () => Accessor<MainStatType | SubStatType>[],
-  initialvalue?: SubStatType,
+  initialvalue?: SubStatType
 ): SubStatAccessor {
   const substatDependencyList = useUniqueSubstatList(substats, dependencyList);
   const [substatVal, setSubstatVal] = createSignal<SubStatType>(
-    initialvalue || SubStatNone,
+    initialvalue || SubStatNone
   );
 
   createEffect(() => {
@@ -48,6 +49,32 @@ function createSubstatSignal(
   });
 
   return { substatVal, setSubstatVal, substatDependencyList };
+}
+
+export type SubStatAccessorLevelup3 = SubStatAccessor & {
+  setContentList: Setter<SubStatType[]>;
+};
+
+export function createLevelUp3Signal(
+  substats: Accessor<SubStatType[]>,
+  dependencyList: () => Accessor<MainStatType | SubStatType>[],
+  initialvalue?: SubStatType
+): SubStatAccessorLevelup3 {
+  const substatDependencyList = useUniqueSubstatList(substats, dependencyList);
+  const [substatVal, setSubstatVal] = createSignal<SubStatType>(
+    initialvalue || SubStatNone
+  );
+  const [contentList, setContentList] = createSignal<SubStatType[]>(
+    substatDependencyList()
+  );
+
+  createEffect(() => {
+    if (!contentList().includes(substatVal())) {
+      setSubstatVal(contentList()[0]);
+    }
+  });
+
+  return { substatVal, setSubstatVal, substatDependencyList, setContentList };
 }
 
 export default createSubstatSignal;

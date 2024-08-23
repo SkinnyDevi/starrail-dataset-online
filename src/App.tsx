@@ -1,10 +1,4 @@
-import {
-  createEffect,
-  createSignal,
-  For,
-  onMount,
-  type Component,
-} from "solid-js";
+import { createEffect, createSignal, For, type Component } from "solid-js";
 import {
   MainStatBody,
   MainStatFeet,
@@ -15,12 +9,8 @@ import {
   MainStatType,
 } from "./types/artifact/mainstat";
 import {
-  SubStatATK,
   SubStatATKPercentage,
-  SubStatBreakEffect,
-  SubStatDEF,
   SubStatDEFPercentage,
-  SubStatHP,
   SubStatHPPercentage,
   SubStatNone,
   Substats,
@@ -36,8 +26,9 @@ import SubstatValueCombo from "./components/dropdown/SubstatValueCombo";
 import LevelUp3Dropdown from "./components/dropdown/LevelUp3Dropdown";
 import LevelUpStandardDropdown from "./components/dropdown/LevelUpStandardDropdown";
 import { MainStatHP } from "./types/artifact/mainstat";
-import useUniqueSubstatList from "./components/hooks/subtatlist-hook";
-import createSubstatSignal from "./components/hooks/subtatlist-hook";
+import createSubstatSignal, {
+  createLevelUp3Signal,
+} from "./components/hooks/subtatlist-hook";
 
 const App: Component = () => {
   const artifact: Artifact = {
@@ -56,17 +47,17 @@ const App: Component = () => {
   const substat1Signal = createSubstatSignal(
     () => Substats,
     () => [mainStat],
-    SubStatHPPercentage,
+    SubStatHPPercentage
   );
   const substat2Signal = createSubstatSignal(
     () => Substats,
     () => [mainStat, substat1Signal.substatVal],
-    SubStatATKPercentage,
+    SubStatATKPercentage
   );
   const substat3Signal = createSubstatSignal(
     () => Substats,
     () => [mainStat, substat1Signal.substatVal, substat2Signal.substatVal],
-    SubStatDEFPercentage,
+    SubStatDEFPercentage
   );
   const substat4Signal = createSubstatSignal(
     () => SubstatsWithNone,
@@ -76,9 +67,10 @@ const App: Component = () => {
       substat2Signal.substatVal,
       substat3Signal.substatVal,
     ],
+    SubStatNone
   );
 
-  const substatUp3Signal = createSubstatSignal(
+  const substatUp3Signal = createLevelUp3Signal(
     () => Substats,
     () => [
       mainStat,
@@ -86,10 +78,11 @@ const App: Component = () => {
       substat2Signal.substatVal,
       substat3Signal.substatVal,
       substat4Signal.substatVal,
-    ],
+    ]
   );
 
-  const [substatup6, setSubstatUp6] = createSignal<SubStatType>(SubStatNone);
+  const [substatup6, setSubstatUp6] =
+    createSignal<SubStatType>(SubStatHPPercentage);
   const [substatup9, setSubstatUp9] = createSignal<SubStatType>(SubStatNone);
   const [substatup12, setSubstatUp12] = createSignal<SubStatType>(SubStatNone);
   const [substatup15, setSubstatUp15] = createSignal<SubStatType>(SubStatNone);
@@ -124,7 +117,7 @@ const App: Component = () => {
     const substatsSignal = [substat1Signal, substat2Signal, substat3Signal];
 
     const substats: ArtifactSubstats = substatsSignal.map((statSignal) =>
-      statSignal.substatVal(),
+      statSignal.substatVal()
     ) as ArtifactSubstats;
     if (substat4Signal.substatVal().name !== SubStatNone.name) {
       substats.push(substat4Signal.substatVal());
@@ -144,7 +137,7 @@ const App: Component = () => {
     artifact.levelup12 = substatup12();
     artifact.levelup15 = substatup15();
 
-    //console.log("Artifact:", artifact);
+    console.log("Artifact:", artifact);
   });
 
   return (
@@ -234,8 +227,8 @@ const App: Component = () => {
                   onChange={(e) =>
                     setMainStat(
                       Array.from(mainStatType()).find(
-                        (stat) => stat.name === e.target.value,
-                      ) || MainStatHP,
+                        (stat) => stat.name === e.target.value
+                      ) || MainStatHP
                     )
                   }
                 >

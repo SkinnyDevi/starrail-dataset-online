@@ -1,23 +1,19 @@
-import {
-  Accessor,
-  createEffect,
-  createSignal,
-  For,
-  Show,
-  type Component,
-} from "solid-js";
+import { Accessor, createEffect, For, type Component } from "solid-js";
 import {
   SubStatNone,
   Substats,
   SubStatType,
 } from "../../types/artifact/substat";
 import { ArtifactSubstats } from "../../types/artifact/artifact";
-import { SubStatAccessor } from "../hooks/subtatlist-hook";
+import {
+  SubStatAccessor,
+  SubStatAccessorLevelup3,
+} from "../hooks/subtatlist-hook";
 
 interface LevelUp3DropdownProps {
   artifactSubstats: Accessor<ArtifactSubstats>;
   lastSubstatSignal: SubStatAccessor;
-  substatSignal: SubStatAccessor;
+  substatSignal: SubStatAccessorLevelup3;
 }
 
 const LevelUp3Dropdown: Component<LevelUp3DropdownProps> = ({
@@ -25,21 +21,22 @@ const LevelUp3Dropdown: Component<LevelUp3DropdownProps> = ({
   lastSubstatSignal,
   substatSignal,
 }) => {
-  const { substatVal, setSubstatVal, substatDependencyList } = substatSignal;
-  const [contents, setContents] = createSignal<SubStatType[]>([]);
+  const { substatVal, setSubstatVal, substatDependencyList, setContentList } =
+    substatSignal;
 
-  createEffect(() => {
-    const hasAll4 = lastSubstatSignal.substatVal().name !== SubStatNone.name;
-    const newContents = hasAll4 ? artifactSubstats() : substatDependencyList();
-    setContents(newContents);
-    if (!newContents.includes(substatVal())) {
-      setSubstatVal(newContents[0]);
-    }
-  });
+  function getContents() {
+    const all4 = lastSubstatSignal.substatVal().name !== SubStatNone.name;
+    const contents = all4 ? artifactSubstats() : substatDependencyList();
+    return contents;
+  }
 
   function valueFormatter(value: number, substat: SubStatType) {
     return substat.valueIsPercentage ? `${value}%` : value;
   }
+
+  createEffect(() => {
+    setContentList(getContents());
+  });
 
   return (
     <>
@@ -47,13 +44,14 @@ const LevelUp3Dropdown: Component<LevelUp3DropdownProps> = ({
         <select
           class="dropdown"
           value={substatVal().name}
-          onChange={(e) =>
-            setSubstatVal(
-              Substats.find((substat) => substat.name === e.target.value)!,
-            )
-          }
+          onChange={(e) => {
+            const newSubstat = Substats.find(
+              (substat) => substat.name === e.target.value
+            );
+            setSubstatVal(newSubstat!);
+          }}
         >
-          <For each={contents()}>
+          <For each={getContents()}>
             {(stat) => <option value={stat.name}>{stat.name}</option>}
           </For>
         </select>
